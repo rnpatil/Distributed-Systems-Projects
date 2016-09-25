@@ -19,6 +19,7 @@ public class MPIPageRank {
 	// adjacency matrix read from file
 	private HashMap<Integer, ArrayList<Integer>> adjMatrix = new HashMap<Integer, ArrayList<Integer>>();
 
+	// local adjacency matrix to store per rank urls
 	private HashMap<Integer, ArrayList<Integer>> localAdjMatrix = new HashMap<Integer, ArrayList<Integer>>();
 	// input file name
 	private String inputFile = "";
@@ -100,12 +101,12 @@ public class MPIPageRank {
 	}
 
 	private void calculate(){
-		//init
+		// Assign initial pageRanks 
 		rankValues = new double[size];
 		for(int i=0; i < size; i++){
 			rankValues[i] = 1.0 / size;
 		}
-
+		
 		//compute
 		for(int i=1; i <= iterations; i++){
 			rankValues = calPerIteration(rankValues);
@@ -141,6 +142,11 @@ public class MPIPageRank {
 	}
 
 
+	/**
+	 * Parse the command line arguments and update the instance variables.
+	 *
+	 * @param args arguments
+	 */
 	private void parseArgs(String[] args) {
 		if(args.length < 7)
 		{
@@ -166,6 +172,18 @@ public class MPIPageRank {
 		System.out.println(usage);
 	}
 
+	/**
+	 * Read file
+	 * Load Adjacency Matrix
+	 * Distribute data to all workers
+	 * 
+	 *  Rank 0 - reads from input file, loads the data to Adjacency Matrix and Sends data to others Ranks as per the blockSize
+	 *  All other Ranks - Receive their respective data (urls) from Rank0
+	 *  
+	 *  
+	 *  All Ranks have a localAdjacency Matrix which holds a part of the Adjacency Matrix 
+	 * 
+	 */
 	private  void loadAndDistribute() 
 	{
 		int totalNumOfUrls = 0;
@@ -324,19 +342,22 @@ public class MPIPageRank {
 
 		 
        
-		//broadcast the size
-		// every process invokes the bcast
+		/** broadcast the size
+		/   every process invokes the bcast
+		 * 
+		 * 
+		 */
 		int totalSize[] = new int[1];
 		totalSize[0] = totalNumOfUrls;
 		MPI.COMM_WORLD.Bcast(totalSize, 0, 1, MPI.INT, 0);
 		size = totalSize[0];
-		 // now everybody should have the same values for size
-		System.out.println(rank+": "+size);
+		 // now every rank should have the same values for size
+		if(debugMode)System.out.println(rank+": "+size);
 	}
 
 	public static void main(String[] args) {
-		MPIPageRank testMPIPageRank = new MPIPageRank( args);
-		testMPIPageRank.process();
+		MPIPageRank mpiPageRank = new MPIPageRank( args);
+		mpiPageRank.process();
 	}
 
 

@@ -5,6 +5,6 @@ if [ $# != 5 ] ; then
 fi
 
 
-javac -cp .:./lib/mpj.jar src/MPIPageRank/TestMPIPageRank.java -d bin/
+javac -cp .:./lib/mpj.jar src/MPIPageRank/MPIPageRank.java -d bin/
 cd bin
-mpjrun.sh -np $1 MPIPageRank.TestMPIPageRank $2 $3 $4 $5
+mpjrun.sh -np $1 MPIPageRank.MPIPageRank $2 $3 $4 $5
